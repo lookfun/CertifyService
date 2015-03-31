@@ -17,7 +17,7 @@ void starsocket();
 bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid);
 void search(packet repa,packet &sepa,char * uid,char * cuid);
 void insert(packet repa,packet &sepa,char * uid,char * cuid);
-
+void set(packet repa,packet &sepa,char * uid,char * cuid);
 void newcode(char * code);
 char random();
 void charto16x(char * in,char * out);
@@ -63,8 +63,9 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 	time_t rawtime; 
 	struct tm * timeinfo; 
 	time ( &rawtime ); 
-	timeinfo = localtime ( &rawtime ); 
-	printf ( "%s", asctime (timeinfo)); 
+	timeinfo = localtime( &rawtime); 
+//	errno_t errnotime=localtime_s(timeinfo,&rawtime);
+	printf ( "%s", asctime(timeinfo)); 
 
 	int command;
 
@@ -78,16 +79,21 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 		{
 		case 204:
 			search(repa,sendpa,uid,cuid);
+			send(con,(char*)(&sendpa),sizeof(sendpa),0);
 			break;
 		case 51:
 			insert(repa,sendpa,uid,cuid);
+			send(con,(char*)(&sendpa),sizeof(sendpa),0);
+			break;
+		case 0xaa:
+			set(repa,sendpa,uid,cuid);
 			break;
 		default:
 			printf("Unknown Command!\n");
 			break;
 		}
 
-		send(con,(char*)(&sendpa),sizeof(sendpa),0);
+
 
 	}
 
@@ -124,8 +130,6 @@ void starsocket()
 
 bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid)
 {
-//	extern char uid[9];
-//	extern char cuid[17];
 	unsigned char com[2];
 	memset(com,0,2);
 
@@ -134,12 +138,6 @@ bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid
 	int codelen=recv(sockcon,((char*)&repa)+8,32,0);
 
 	command=int(com[0]);
-/*	
-	for (int i=0;i<32;i++)
-	{
-		repa.code[i]=buf[i];
-	}
-*/
 
 	for (int i=0;i<8;i++)
 	{
@@ -174,14 +172,10 @@ bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid
 };
 void search(packet repa,packet &sepa,char * uid,char * cuid)
 {
-	//packet sepa;
-//	extern char uid[9];
-//	extern char cuid[17];
-
 	char codeontag[65]; //用字符表示16进制code
 	memset(codeontag,0,sizeof(codeontag));
 	charto16x(repa.code,codeontag);
-	
+
 	char sqlcmd[200];	
 	memset(sqlcmd,0,sizeof(sqlcmd));
 	sprintf(sqlcmd,"select code from dbo.var where uid='%s'",cuid);
@@ -242,13 +236,8 @@ void search(packet repa,packet &sepa,char * uid,char * cuid)
 }
 void insert(packet repa,packet &sepa,char * uid,char * cuid)
 {
-//	extern char uid[9];
-//	extern char cuid[17];
-
 	char ccode[65];
 	memset(ccode,0,65);
-
-
 	newcode(sepa.code);
 	charto16x(sepa.code,ccode);
 
@@ -285,6 +274,45 @@ void insert(packet repa,packet &sepa,char * uid,char * cuid)
 	printf("Insert new Tag:%s\n",cuid);
 	printf("With Code :%s\n",ccode);
 
+	memset((void *)sepa.uid,0xff,2);
+	memset((void *)(sepa.uid+2),0x00,2);
+	memset((void *)(sepa.uid+4),0xff,2);
+	memset((void *)(sepa.uid+6),0x00,2);
+}
+void set(packet repa,packet &sepa,char * uid,char * cuid)
+{
+	char ccode[65];
+	memset(ccode,0,65);
+	charto16x(repa.code,ccode);
+	try
+	{
+		char sqlcmd[200];
+		memset(sqlcmd,0,sizeof(sqlcmd));
+		sprintf(sqlcmd,"select code from dbo.var where uid='%s'",cuid);
+		_RecordsetPtr pRst=adocon.GetRecordSet(sqlcmd);
+		if (!pRst->adoEOF)
+		{
+			_variant_t newcode;
+			newcode.SetString(ccode);
+			pRst->PutCollect("code",newcode);
+			pRst->Update();
+		} 
+		else
+		{
+			char excuteString[200];
+			memset(excuteString,0,200);
+			sprintf(excuteString,"INSERT INTO dbo.var(uid,code) VALUES('%s','%s')",cuid,ccode);
+
+			adocon.ExcuteSQL(excuteString);
+		}
+		pRst->Close();
+	}
+	catch (_com_error e)
+	{
+		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
+	}
+	printf("Set Tag:%s\n",cuid);
+	printf("With Code :%s\n",ccode);
 	memset((void *)sepa.uid,0xff,2);
 	memset((void *)(sepa.uid+2),0x00,2);
 	memset((void *)(sepa.uid+4),0xff,2);

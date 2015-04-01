@@ -4,7 +4,7 @@
 #include <string.h>
 using namespace std;
 
-//#define localdb
+#define localdb
 #ifndef localdb
 #define serverdb
 #endif
@@ -22,6 +22,8 @@ public:
 private:
 	_ConnectionPtr m_pConnection;
 	_RecordsetPtr m_pRecordeset;
+
+
 	string m_strDBName;
 	string m_strPwd;
 	string m_strUid;
@@ -51,13 +53,10 @@ ADOcon::~ADOcon(void)
 void ADOcon::InitADOcon()
 {
 	::CoInitialize(NULL);
-
 	try
 	{
 		m_pConnection.CreateInstance("ADODB.Connection");
 		string strConnectTmp;
-//		sprintf(strConnectTmp,"Provider=SQLOLEDB;Server=%s;Database=%s;uid=%s;pwd=%s;",m_strDBServer,m_strDBName,m_strUid,m_strPwd);
-//		strConnectTmp.Format(_T("Provider=SQLOLEDB;Server=%s;Database=%s;uid=%s;pwd=%s;"),m_strDBServer,m_strDBName,m_strUid,m_strPwd);
 		strConnectTmp="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";uid="+m_strUid+";pwd="+m_strPwd;
 		_bstr_t strConnect=_bstr_t(strConnectTmp.c_str());
 		m_pConnection->Open(strConnect,"","",adModeUnknown);

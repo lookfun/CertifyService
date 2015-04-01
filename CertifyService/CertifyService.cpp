@@ -50,7 +50,7 @@ void main()
 DWORD WINAPI ComThread(LPVOID lpParameter)
 {
 	SOCKET con=(SOCKET)lpParameter;
-
+	//extern int count;
 	packet repa,sendpa;
 	memset(&repa,0,sizeof(packet));
 	memset(&sendpa,0,sizeof(packet));
@@ -59,7 +59,7 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 	memset(uid,0,sizeof(uid));
 	memset(cuid,0,sizeof(cuid));
 
-	printf("\n%d:\n",count++);
+	printf("\n%d:\n",::count++);
 	time_t rawtime; 
 	struct tm * timeinfo; 
 	time ( &rawtime ); 
@@ -92,11 +92,7 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 			printf("Unknown Command!\n");
 			break;
 		}
-
-
-
 	}
-
 	return 0;
 }
 void starsocket()
@@ -113,19 +109,14 @@ void starsocket()
 	if (LOBYTE(wsaData.wVersion)!=1||HIBYTE(wsaData.wVersion)!=1)
 	{
 		WSACleanup();
-
 	}
 	sockSrv=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 	SOCKADDR_IN addrSrv;
 	addrSrv.sin_addr.S_un.S_addr=htonl(INADDR_ANY);
 	addrSrv.sin_family=AF_INET;
 	addrSrv.sin_port=htons(1212);
-
 	bind(sockSrv,(SOCKADDR*)&addrSrv,sizeof(SOCKADDR));
-
 	listen(sockSrv,5);
-
-
 }
 
 bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid)

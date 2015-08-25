@@ -34,7 +34,7 @@ private:
 ADOcon::ADOcon(void) 
 {
 #ifdef localdb
-	m_strDBServer="(local)\\\SQLEXPRESS";
+	m_strDBServer="(local)\\SQLEXPRESS";
 	m_strDBName="var";
 	m_strUid="sa";
 	m_strPwd="kb134";

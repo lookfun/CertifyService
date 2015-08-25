@@ -26,6 +26,12 @@
     <ClInclude Include="ADO.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="sqlstore.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CertifyType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dbo.var.sql" />

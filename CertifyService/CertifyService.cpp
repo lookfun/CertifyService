@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <WinSock2.h>
 #pragma comment(lib, "WS2_32")
@@ -7,6 +6,7 @@
 #include <time.h>
 #include <string>
 #include "ADO.h"
+#include "CertifyType.h"
 using namespace std;
 
 #import "msado60_Backcompat_i386.tlb" no_namespace rename("EOF","adoEOF") rename ("BOF","adoBOF")

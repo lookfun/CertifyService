@@ -18,7 +18,7 @@ public:
 	void InitADOcon();
 	_RecordsetPtr &GetRecordSet(_bstr_t bstrSQL);
 	bool ExcuteSQL(_bstr_t bstrSQL);
-
+	bool isClosed();
 private:
 	_ConnectionPtr m_pConnection;
 	_RecordsetPtr m_pRecordeset;
@@ -78,6 +78,10 @@ void ADOcon::InitADOcon(string strDBServer,
 
 	InitADOcon();
 
+}
+bool ADOcon::isClosed()
+{
+	return (m_pConnection->State==adStateClosed);
 }
 _RecordsetPtr &ADOcon::GetRecordSet(_bstr_t bstrSQL)
 {

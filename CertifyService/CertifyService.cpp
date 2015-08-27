@@ -7,6 +7,7 @@
 #include <string>
 #include "ADO.h"
 #include "CertifyType.h"
+#include "sqlstore.h"
 using namespace std;
 
 #import "msado60_Backcompat_i386.tlb" no_namespace rename("EOF","adoEOF") rename ("BOF","adoBOF")
@@ -18,14 +19,11 @@ bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid
 void search(packet repa,packet &sepa,char * uid,char * cuid);
 void insert(packet repa,packet &sepa,char * uid,char * cuid);
 void set(packet repa,packet &sepa,char * uid,char * cuid);
-void newcode(char * code);
-char random();
-void charto16x(char * in,char * out);
 
 int count=1;
 _ConnectionPtr pConn;
 SOCKET sockSrv;
-
+SqlStore store;
 ADOcon adocon;
 
 void main()
@@ -64,7 +62,7 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 	struct tm * timeinfo; 
 	time ( &rawtime ); 
 	timeinfo = localtime( &rawtime); 
-//	errno_t errnotime=localtime_s(timeinfo,&rawtime);
+	//	errno_t errnotime=localtime_s(timeinfo,&rawtime);
 	printf ( "%s", asctime(timeinfo)); 
 
 	int command;
@@ -161,70 +159,35 @@ bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid
 		return true;
 	}
 };
-void search(packet repa,packet &sepa,char * uid,char * cuid)
+void search(packet repa,packet &sepa,char * cuid,char * suid)
 {
-	char codeontag[65]; //用字符表示16进制code
-	memset(codeontag,0,sizeof(codeontag));
-	charto16x(repa.code,codeontag);
 
-	char sqlcmd[200];	
-	memset(sqlcmd,0,sizeof(sqlcmd));
-	sprintf(sqlcmd,"select code from dbo.var where uid='%s'",cuid);
+// 	char codeontag[65]; //用字符表示16进制code
+// 	memset(codeontag,0,sizeof(codeontag));
+// 	charto16x(repa.code,codeontag);
+	UID uid(cuid);
+	CODE tag_code(repa.code);
+	CODE new_code;
 
-	_RecordsetPtr pRst=adocon.GetRecordSet(sqlcmd);
+	int ret=store.Update(&uid,&tag_code,&new_code);
 
-	if (pRst->adoEOF)
+	if (ret)
 	{
-
-		printf("uid=%s is not exist!\n",cuid);
-		memset(&sepa.uid,0x00,4);
-		memset((void *)(sepa.uid+4),0xff,4);
+		printf("uid=%s is right\n",suid);
+		memset(&sepa.uid,0xff,4);
+		memset((void *)(sepa.uid+4),0x00,4);
 	}
 	else
 	{
-		_variant_t codeindb;
-		codeindb=pRst->GetCollect("code");
-		printf("TagCode:%s\n",codeontag);
-		printf("DB Code:%s\n",(LPSTR)(LPCSTR)_bstr_t(codeindb));
-
-		if (strcmp((LPSTR)(LPCSTR)_bstr_t(codeindb),codeontag)==0)
-		{
-			printf("uid=%s is right\n",cuid);
-			memset(&sepa.uid,0xff,4);
-			memset((void *)(sepa.uid+4),0x00,4);
-			newcode(sepa.code);
-			_variant_t newcode;
-			char newcode64[65];
-			charto16x(sepa.code,newcode64);
-			newcode.SetString(newcode64);
-			try
-			{
-				pRst->PutCollect("code",newcode);
-				pRst->Update();
-			}
-			catch(_com_error e)
-			{
-				cout<<e.Description()<<endl;
-			}
-		}
+		if (ret==0)
+			printf("uid=%s is not exist\n",suid);
 		else
-		{
-			printf("uid=%s is not right\n",cuid);
-			memset(&sepa.uid,0x00,4);
-			memset((void *)(sepa.uid+4),0xff,4);
-		}
+			printf("uid=%s is not right\n",suid);
+		memset(&sepa.uid,0x00,4);
+		memset((void *)(sepa.uid+4),0xff,4);
 	}
-	try
-	{
-		pRst->Close();
-	}
-	catch(_com_error e)
-	{
-		cout<<"pRst Close Error!"<<endl;
-		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
-	}
-
 }
+
 void insert(packet repa,packet &sepa,char * uid,char * cuid)
 {
 	char ccode[65];
@@ -308,31 +271,4 @@ void set(packet repa,packet &sepa,char * uid,char * cuid)
 	memset((void *)(sepa.uid+2),0x00,2);
 	memset((void *)(sepa.uid+4),0xff,2);
 	memset((void *)(sepa.uid+6),0x00,2);
-}
-void newcode(char * code)
-{
-	for (int i=0;i<32;i++)
-		code[i]=random();
-}
-char random()
-{
-	srand(rand()+clock());
-	return (char)(rand()%256);
-}
-void charto16x(char * in,char * out)
-{
-	char temp[65];
-	memset(temp,0,sizeof(temp));
-	//	temp[64]='\0';
-	for (int i=0;i<8;i++)
-	{
-		sprintf(temp+i*8,"%02x%02x%02x%02x",in[4*i+0]&0xff,in[4*i+1]&0xff,in[4*i+2]&0xff,in[4*i+3]&0xff);
-		/*
-		sprintf((char *)temp+i*8,"%02x",(int)(in[4*i])&0xff);
-		sprintf(temp+i*8+2,"%02x",(int)in[4*i+1]&0xff);
-		sprintf(temp+i*8+4,"%02x",(int)in[4*i+2]&0xff);
-		sprintf(temp+i*8+6,"%02x",(int)in[4*i+3]&0xff);
-		*/
-	}
-	sprintf(out,"%64s",temp);
 }

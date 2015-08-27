@@ -18,6 +18,9 @@
     <ClCompile Include="CertifyService.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CertifyType.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pack.h">

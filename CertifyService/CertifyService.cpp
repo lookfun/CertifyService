@@ -188,45 +188,14 @@ void search(packet repa,packet &sepa,char * cuid,char * suid)
 	}
 }
 
-void insert(packet repa,packet &sepa,char * uid,char * cuid)
+void insert(packet repa,packet &sepa,char * cuid,char * struid)
 {
-	char ccode[65];
-	memset(ccode,0,65);
-	newcode(sepa.code);
-	charto16x(sepa.code,ccode);
+	UID uid(cuid);
+	CODE code;
+	store.Insert(&uid,&code);
 
-	try
-	{
-		char sqlcmd[200];
-		memset(sqlcmd,0,sizeof(sqlcmd));
-		sprintf(sqlcmd,"select code from dbo.var where uid='%s'",cuid);
-
-		_RecordsetPtr pRst=adocon.GetRecordSet(sqlcmd);
-
-		if (!pRst->adoEOF)
-		{
-			_variant_t newcode;
-			newcode.SetString(ccode);
-			pRst->PutCollect("code",newcode);
-			pRst->Update();
-		} 
-		else
-		{
-			char excuteString[200];
-			memset(excuteString,0,200);
-			sprintf(excuteString,"INSERT INTO dbo.var(uid,code) VALUES('%s','%s')",cuid,ccode);
-
-			adocon.ExcuteSQL(excuteString);
-		}
-		pRst->Close();
-	}
-	catch (_com_error e)
-	{
-		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
-	}
-
-	printf("Insert new Tag:%s\n",cuid);
-	printf("With Code :%s\n",ccode);
+	printf("Insert new Tag:%s\n",uid.m_str);
+	printf("With Code :%s\n",code.m_str);
 
 	memset((void *)sepa.uid,0xff,2);
 	memset((void *)(sepa.uid+2),0x00,2);

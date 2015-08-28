@@ -13,7 +13,8 @@ class SqlStore// :public IStore
 public:
 	ADOcon ado_Inst;
 	CODE GetCode(UID *uid);
-	int Update(UID *uid,CODE *old_code,CODE *new_code);
+	int Update(UID *uid, CODE *old_code, CODE *new_code);
+	int Insert(UID *uid, CODE *code);
 protected:
 	_RecordsetPtr GetRecordInDB(UID *uid);
 };
@@ -103,4 +104,36 @@ int SqlStore::Update(UID* uid,CODE *old_code,CODE *new_code)
 		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
 	}
 	return ret;
+}
+
+int SqlStore::Insert(UID *uid, CODE *code)
+{
+	_RecordsetPtr pRst=GetRecordInDB(uid);
+	try
+	{
+		if (!pRst->adoEOF)
+		{
+			_variant_t newcode;
+			newcode.SetString(code->m_str);
+			pRst->PutCollect("code",newcode);
+			pRst->Update();
+		}
+		else
+		{
+			string str_exc;
+			str_exc="insert into dbo.var(uid,code) values('"+string(uid->m_str)+"','"+string(code->m_str)+"')";
+// 			str_exc.append(string(uid->m_str));
+// 			str_exc.append("','");
+// 			str_exc.append(string(code->m_str));
+// 			str_exc.append("')");
+
+			ado_Inst.ExcuteSQL(str_exc.data());
+		}
+		pRst->Close();
+	}
+	catch (_com_error e)
+	{	
+		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
+	}
+	return 0;
 }

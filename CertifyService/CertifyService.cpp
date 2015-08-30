@@ -1,37 +1,32 @@
 #include <iostream>
 #include <WinSock2.h>
-#pragma comment(lib, "WS2_32")
-#include "pack.h"
+//#pragma comment(lib, "WS2_32")
 #include <windows.h>
 #include <time.h>
 #include <string>
-#include "ADO.h"
 #include "CertifyType.h"
 #include "sqlstore.h"
+#include "communication.h"
+#include "pack.h"
 using namespace std;
-
-#import "msado60_Backcompat_i386.tlb" no_namespace rename("EOF","adoEOF") rename ("BOF","adoBOF")
 
 DWORD WINAPI ComThread(LPVOID lpParameter);//单个线程
 
 void starsocket();
-bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid);
-void search(packet repa,packet &sepa,char * uid,char * cuid);
-void insert(packet repa,packet &sepa,char * uid,char * cuid);
-void set(packet repa,packet &sepa,char * uid,char * cuid);
+bool receivepack(SOCKET sockcon,Frame &repa,int& command,char * uid,char * cuid);
+void search(Frame repa,Frame &sepa);
+void insert(Frame repa,Frame &sepa);
+void set(Frame repa,Frame &sepa);
 
 int count=1;
 _ConnectionPtr pConn;
 SOCKET sockSrv;
 SqlStore store;
-ADOcon adocon;
 
 void main()
 {
 	starsocket();
-
-	adocon.InitADOcon();
-
+	
 	SOCKADDR_IN addrClient;
 	int len=sizeof(SOCKADDR);
 
@@ -49,9 +44,9 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 {
 	SOCKET con=(SOCKET)lpParameter;
 	//extern int count;
-	packet repa,sendpa;
-	memset(&repa,0,sizeof(packet));
-	memset(&sendpa,0,sizeof(packet));
+	Frame repa,sendpa;
+	memset(&repa,0,sizeof(Frame));
+	memset(&sendpa,0,sizeof(Frame));
 	char uid[9];
 	char cuid[17];
 	memset(uid,0,sizeof(uid));
@@ -64,32 +59,32 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 	timeinfo = localtime( &rawtime); 
 	//	errno_t errnotime=localtime_s(timeinfo,&rawtime);
 	printf ( "%s", asctime(timeinfo)); 
+	VarifySocket conSock((SOCKET)lpParameter);
+	int command = conSock.GetCommand(&repa);
 
-	int command;
-
-	if (receivepack(con,repa,command,uid,cuid))
+	if (command != -1)
 	{
 		printf("Tag:%s\n",cuid);
 		printf("command:0x%02x\n",command);
 
-		adocon.InitADOcon();
 		switch (command)
 		{
 		case 204:
-			search(repa,sendpa,uid,cuid);
-			send(con,(char*)(&sendpa),sizeof(sendpa),0);
+			search(repa,sendpa);
+			//send(con,(char*)(&sendpa),sizeof(sendpa),0);
 			break;
 		case 51:
-			insert(repa,sendpa,uid,cuid);
-			send(con,(char*)(&sendpa),sizeof(sendpa),0);
+			insert(repa,sendpa);
+			//send(con,(char*)(&sendpa),sizeof(sendpa),0);
 			break;
 		case 0xaa:
-			set(repa,sendpa,uid,cuid);
+			set(repa,sendpa);
 			break;
 		default:
 			printf("Unknown Command!\n");
 			break;
 		}
+		conSock.SendResponse(&sendpa);
 	}
 	return 0;
 }
@@ -117,7 +112,7 @@ void starsocket()
 	listen(sockSrv,5);
 }
 
-bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid)
+bool receivepack(SOCKET sockcon,Frame &repa,int& command,char * uid,char * cuid)
 {
 	unsigned char com[2];
 	memset(com,0,2);
@@ -159,58 +154,50 @@ bool receivepack(SOCKET sockcon,packet &repa,int& command,char * uid,char * cuid
 		return true;
 	}
 };
-void search(packet repa,packet &sepa,char * cuid,char * suid)
+void search(Frame repa,Frame &sepa)
 {
 
 // 	char codeontag[65]; //用字符表示16进制code
 // 	memset(codeontag,0,sizeof(codeontag));
 // 	charto16x(repa.code,codeontag);
-	UID uid(cuid);
+	UID uid(repa.uid);
 	CODE tag_code(repa.code);
 	CODE new_code;
 
 	int ret=store.Update(&uid,&tag_code,&new_code);
 
-	if (ret)
+	if (ret == 1)
 	{
-		printf("uid=%s is right\n",suid);
-		memset(&sepa.uid,0xff,4);
-		memset((void *)(sepa.uid+4),0x00,4);
+		printf("uid=%s is right\n",uid.m_str);
+		sepa.gen(VARIFY_SECCESS, new_code.m_data);
 	}
 	else
 	{
-		if (ret==0)
-			printf("uid=%s is not exist\n",suid);
+		if (ret == 0)
+			printf("uid=%s is not exist\n",uid.m_str);
 		else
-			printf("uid=%s is not right\n",suid);
-		memset(&sepa.uid,0x00,4);
-		memset((void *)(sepa.uid+4),0xff,4);
+			printf("uid=%s is not right\n",uid.m_str);
+		sepa.gen(VARIFY_FAILED, NULL);
 	}
 }
 
-void insert(packet repa,packet &sepa,char * cuid,char * struid)
+void insert(Frame repa,Frame &sepa)
 {
-	UID uid(cuid);
+	UID uid(repa.uid);
 	CODE code;
 	store.Insert(&uid,&code);
 
 	printf("Insert new Tag:%s\n",uid.m_str);
 	printf("With Code :%s\n",code.m_str);
 
-	memset((void *)sepa.uid,0xff,2);
-	memset((void *)(sepa.uid+2),0x00,2);
-	memset((void *)(sepa.uid+4),0xff,2);
-	memset((void *)(sepa.uid+6),0x00,2);
+	sepa.gen(SET_SECCESS,code.m_data);
 }
-void set(packet repa,packet &sepa,char * cuid,char * struid)
+void set(Frame repa,Frame &sepa)
 {
-	UID uid(cuid);
+	UID uid(repa.uid);
 	CODE code(repa.code);
 	store.Set(&uid, &code);
 	printf("Set Tag:%s\n",uid.m_str);
 	printf("With Code :%s\n",code.m_str);
-	memset((void *)sepa.uid,0xff,2);
-	memset((void *)(sepa.uid+2),0x00,2);
-	memset((void *)(sepa.uid+4),0xff,2);
-	memset((void *)(sepa.uid+6),0x00,2);
+	sepa.gen(SET_SECCESS, NULL);
 }

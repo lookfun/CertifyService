@@ -17,6 +17,21 @@ void search(Frame repa,Frame &sepa);
 void insert(Frame repa,Frame &sepa);
 void set(Frame repa,Frame &sepa);
 
+typedef void (*proc)(Frame repa,Frame &sepa);
+
+typedef struct CMD_HANDLER
+{
+	int cmd;
+	proc handler;
+}CMD_HANDLER;
+
+CMD_HANDLER CMD_LIST[]=
+{
+	{0xcc,search},
+	{0x33,insert},
+	{0xaa,set}
+};
+
 int count=1;
 _ConnectionPtr pConn;
 SOCKET sockSrv;
@@ -36,7 +51,6 @@ void main()
 		hthread1=CreateThread(NULL,0,ComThread,(LPVOID)con,0,NULL);
 		CloseHandle(hthread1);
 	}
-
 }
 
 DWORD WINAPI ComThread(LPVOID lpParameter)
@@ -65,28 +79,38 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 	{
 		printf("Tag:%s\n",cuid);
 		printf("command:0x%02x\n",command);
-
-		switch (command)
+		int i;
+		for (i=0;i<sizeof(CMD_LIST)/sizeof(CMD_HANDLER);i++)
 		{
-		case 204:
-			search(repa,sendpa);
-			//send(con,(char*)(&sendpa),sizeof(sendpa),0);
-			break;
-		case 51:
-			insert(repa,sendpa);
-			//send(con,(char*)(&sendpa),sizeof(sendpa),0);
-			break;
-		case 0xaa:
-			set(repa,sendpa);
-			break;
-		default:
-			printf("Unknown Command!\n");
-			break;
+			if (command==CMD_LIST[i].cmd)
+			{
+				CMD_LIST[i].handler(repa, sendpa);
+				break;
+			}
 		}
-		conSock.SendResponse(&sendpa);
+// 		switch (command)
+// 		{
+// 		case 204:
+// 			search(repa,sendpa);
+// 			break;
+// 		case 51:
+// 			insert(repa,sendpa);
+// 			break;
+// 		case 0xaa:
+// 			set(repa,sendpa);
+// 			break;
+// 		default:
+// 			printf("Unknown Command!\n");
+// 			break;
+// 		}
+		if (i<sizeof(CMD_LIST)/sizeof(CMD_HANDLER))
+			conSock.SendResponse(&sendpa);
+		else
+			printf("Unknown Command!\n");
 	}
 	return 0;
 }
+
 void starsocket()
 {
 	WORD wVersionRequested;
@@ -111,54 +135,8 @@ void starsocket()
 	listen(sockSrv,5);
 }
 
-bool receivepack(SOCKET sockcon,Frame &repa,int& command,char * uid,char * cuid)
-{
-	unsigned char com[2];
-	memset(com,0,2);
-
-	int comlen=recv(sockcon,(char *)&com,1,0);
-	int idlen=recv(sockcon,(char*)&repa,8,0);
-	int codelen=recv(sockcon,((char*)&repa)+8,32,0);
-
-	command=int(com[0]);
-
-	for (int i=0;i<8;i++)
-	{
-		uid[i]=repa.uid[i];
-	}
-	sprintf(cuid,"%02x%02x%02x%02x%02x%02x%02x%02x",uid[0]&0xff,uid[1]&0xff,uid[2]&0xff,uid[3]&0xff,uid[4]&0xff,uid[5]&0xff,uid[6]&0xff,uid[7]&0xff);
-
-	if (comlen==SOCKET_ERROR || idlen==SOCKET_ERROR || codelen==SOCKET_ERROR)
-	{
-		int id = WSAGetLastError();
-		switch (id)
-		{
-		case WSANOTINITIALISED: printf("not initialized\n"); break;
-		case WSASYSNOTREADY: printf("sub sys not ready\n"); break;
-		case WSAHOST_NOT_FOUND: printf("name server not found\n");  break;
-		case WSATRY_AGAIN:  printf("server fail\n");  break;
-		case WSANO_RECOVERY:  printf("no recovery\n");   break;
-		case WSAEINPROGRESS:  printf("socket blocked by other prog\n"); break;
-		case WSANO_DATA:   printf("no data record\n");  break;
-		case WSAEINTR:   printf("blocking call canceled\n");  break;
-		case WSAEPROCLIM: printf("limit exceeded\n");
-		case WSAEFAULT:  printf("lpWSAData in startup not valid\n");
-		default: printf("unknown error id = %d\n",id); break;
-		};
-		printf("receive error.\n");
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-};
 void search(Frame repa,Frame &sepa)
 {
-
-// 	char codeontag[65]; //用字符表示16进制code
-// 	memset(codeontag,0,sizeof(codeontag));
-// 	charto16x(repa.code,codeontag);
 	UID uid(repa.uid);
 	CODE tag_code(repa.code);
 	CODE new_code;
@@ -191,6 +169,7 @@ void insert(Frame repa,Frame &sepa)
 
 	sepa.gen(SET_SECCESS,code.m_data);
 }
+
 void set(Frame repa,Frame &sepa)
 {
 	UID uid(repa.uid);

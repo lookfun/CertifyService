@@ -21,6 +21,12 @@
     <ClCompile Include="CertifyType.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="communication.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pack.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pack.h">
@@ -33,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CertifyType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="communication.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

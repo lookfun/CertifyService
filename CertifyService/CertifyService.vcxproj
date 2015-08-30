@@ -46,6 +46,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>WS2_32</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -64,10 +65,13 @@
   <ItemGroup>
     <ClCompile Include="CertifyService.cpp" />
     <ClCompile Include="CertifyType.cpp" />
+    <ClCompile Include="communication.cpp" />
+    <ClCompile Include="pack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ADO.h" />
     <ClInclude Include="CertifyType.h" />
+    <ClInclude Include="communication.h" />
     <ClInclude Include="pack.h" />
     <ClInclude Include="sqlstore.h" />
   </ItemGroup>

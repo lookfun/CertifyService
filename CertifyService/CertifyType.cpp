@@ -1,8 +1,29 @@
 #include <time.h>
-#include "CertifyType.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "CertifyType.h"
+
+char random()
+{
+	srand(rand()+clock());
+	return (char)(rand()%256);
+}
+
+void newcode(char * code)
+{
+	for (int i=0;i<32;i++)
+		code[i]=random();
+}
+
+void charto16x(char * in,char * out)
+{
+	char temp[65];
+	memset(temp,0,sizeof(temp));
+	for (int i=0;i<8;i++)
+		sprintf(temp+i*8,"%02x%02x%02x%02x",in[4*i+0]&0xff,in[4*i+1]&0xff,in[4*i+2]&0xff,in[4*i+3]&0xff);
+	sprintf(out,"%64s",temp);
+}
 
 UID::UID(char *data)
 {
@@ -24,23 +45,64 @@ CODE::CODE()
 	charto16x(m_data,m_str);
 }
 
-void newcode(char * code)
+Frame::Frame(state st, char* cd)
 {
-	for (int i=0;i<32;i++)
-		code[i]=random();
+	if (st == VARIFY_SECCESS)
+	{
+		memset(uid,0xff,4);
+		memset(&uid[4],0x00,4);
+		memcpy_s(code,32,cd,32);
+
+	}
+	else if (st == SET_SECCESS)
+	{
+		memset(uid,0xff,2);
+		memset(&uid[2],0x00,2);
+		memset(&uid[4],0xff,2);
+		memset(&uid[6],0x00,2);
+		if (cd != NULL)
+			memcpy_s(code,32,cd,32);
+	}
+	else 
+	{
+		memset(uid,0x00,4);
+		memset(&uid[4],0xff,4);
+	}
 }
 
-char random()
+int Frame::gen(state st, char* cd)
 {
-	srand(rand()+clock());
-	return (char)(rand()%256);
+	if (st == VARIFY_SECCESS)
+	{
+		memset(uid,0xff,4);
+		memset(&uid[4],0x00,4);
+		memcpy_s(code,32,cd,32);
+
+	}
+	else if (st == SET_SECCESS)
+	{
+		memset(uid,0xff,2);
+		memset(&uid[2],0x00,2);
+		memset(&uid[4],0xff,2);
+		memset(&uid[6],0x00,2);
+		if (cd != NULL)
+			memcpy_s(code,32,cd,32);
+	}
+	else 
+	{
+		memset(uid,0x00,4);
+		memset(&uid[4],0xff,4);
+	}
+	return 0;
 }
 
-void charto16x(char * in,char * out)
+int Frame::gen(char* id, char* cd)
 {
-	char temp[65];
-	memset(temp,0,sizeof(temp));
-	for (int i=0;i<8;i++)
-		sprintf(temp+i*8,"%02x%02x%02x%02x",in[4*i+0]&0xff,in[4*i+1]&0xff,in[4*i+2]&0xff,in[4*i+3]&0xff);
-	sprintf(out,"%64s",temp);
+	if (id != NULL)
+		memcpy_s(uid, 8, id, 8);
+	if (cd != NULL)
+		memcpy_s(code,32,cd,32);
+	return 0;
 }
+
+

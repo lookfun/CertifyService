@@ -1,8 +1,7 @@
-#include "communication.h"
 #include <WinSock2.h>
 #pragma comment(lib, "WS2_32")
 #include <stdio.h>
-#include "pack.h"
+#include "communication.h"
 
 int VarifySocket::GetCommand(Frame *repa)
 {

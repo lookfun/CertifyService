@@ -63,16 +63,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ADO.cpp" />
     <ClCompile Include="CertifyService.cpp" />
     <ClCompile Include="CertifyType.cpp" />
     <ClCompile Include="communication.cpp" />
-    <ClCompile Include="pack.cpp" />
+    <ClCompile Include="sqlstore.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ADO.h" />
     <ClInclude Include="CertifyType.h" />
     <ClInclude Include="communication.h" />
-    <ClInclude Include="pack.h" />
     <ClInclude Include="sqlstore.h" />
   </ItemGroup>
   <ItemGroup>

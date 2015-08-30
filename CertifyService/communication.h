@@ -1,5 +1,5 @@
 #include <WinSock2.h>
-#include "pack.h"
+#include "CertifyType.h"
 
 class VarifySocket
 {

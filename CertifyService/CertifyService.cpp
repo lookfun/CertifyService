@@ -7,7 +7,6 @@
 #include "CertifyType.h"
 #include "sqlstore.h"
 #include "communication.h"
-#include "pack.h"
 using namespace std;
 
 DWORD WINAPI ComThread(LPVOID lpParameter);//单个线程

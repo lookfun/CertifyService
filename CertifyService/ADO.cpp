@@ -39,10 +39,8 @@ void ADOcon::InitADOcon()
 		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
 	}
 }
-void ADOcon::InitADOcon(string strDBServer,
-	string strUid,
-	string strPwd,
-	string strDBName)
+
+void ADOcon::InitADOcon(string strDBServer, string strUid, string strPwd, string strDBName)
 {
 	m_strDBServer=strDBServer;
 	m_strDBName=strDBName;
@@ -52,10 +50,12 @@ void ADOcon::InitADOcon(string strDBServer,
 	InitADOcon();
 
 }
+
 bool ADOcon::isClosed()
 {
 	return (m_pConnection->State==adStateClosed);
 }
+
 _RecordsetPtr &ADOcon::GetRecordSet(_bstr_t bstrSQL)
 {
 	try
@@ -77,6 +77,7 @@ _RecordsetPtr &ADOcon::GetRecordSet(_bstr_t bstrSQL)
 	}
 	return m_pRecordeset;
 }
+
 bool ADOcon::ExcuteSQL(_bstr_t bstrSQL)
 {
 	try

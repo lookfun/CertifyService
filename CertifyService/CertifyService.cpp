@@ -1,6 +1,5 @@
 #include <iostream>
 #include <WinSock2.h>
-//#pragma comment(lib, "WS2_32")
 #include <windows.h>
 #include <time.h>
 #include <string>
@@ -33,7 +32,6 @@ CMD_HANDLER CMD_LIST[]=
 };
 
 int count=1;
-_ConnectionPtr pConn;
 SOCKET sockSrv;
 SqlStore store;
 
@@ -55,29 +53,22 @@ void main()
 
 DWORD WINAPI ComThread(LPVOID lpParameter)
 {
-	SOCKET con=(SOCKET)lpParameter;
-	//extern int count;
 	Frame repa,sendpa;
 	memset(&repa,0,sizeof(Frame));
 	memset(&sendpa,0,sizeof(Frame));
-	char uid[9];
-	char cuid[17];
-	memset(uid,0,sizeof(uid));
-	memset(cuid,0,sizeof(cuid));
 
 	printf("\n%d:\n",::count++);
 	time_t rawtime; 
 	struct tm * timeinfo; 
 	time ( &rawtime ); 
 	timeinfo = localtime( &rawtime); 
-	//	errno_t errnotime=localtime_s(timeinfo,&rawtime);
 	printf ( "%s", asctime(timeinfo)); 
 	VarifySocket conSock((SOCKET)lpParameter);
 	int command = conSock.GetCommand(&repa);
 
 	if (command != -1)
 	{
-		printf("Tag:%s\n",cuid);
+		printf("Tag:%s\n",UID(repa.uid).m_str);
 		printf("command:0x%02x\n",command);
 		int i;
 		for (i=0;i<sizeof(CMD_LIST)/sizeof(CMD_HANDLER);i++)
@@ -88,21 +79,6 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 				break;
 			}
 		}
-// 		switch (command)
-// 		{
-// 		case 204:
-// 			search(repa,sendpa);
-// 			break;
-// 		case 51:
-// 			insert(repa,sendpa);
-// 			break;
-// 		case 0xaa:
-// 			set(repa,sendpa);
-// 			break;
-// 		default:
-// 			printf("Unknown Command!\n");
-// 			break;
-// 		}
 		if (i<sizeof(CMD_LIST)/sizeof(CMD_HANDLER))
 			conSock.SendResponse(&sendpa);
 		else

@@ -18,6 +18,7 @@ ADOcon::ADOcon(void)
 	m_strPwd="5ef053cb";
 #endif
 }
+
 ADOcon::~ADOcon(void)
 {
 }

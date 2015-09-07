@@ -71,15 +71,17 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 		printf("Tag:%s\n",UID(repa.uid).m_str);
 		printf("command:0x%02x\n",command);
 		int i;
+		bool isCMD = false;
 		for (i=0;i<sizeof(CMD_LIST)/sizeof(CMD_HANDLER);i++)
 		{
 			if (command==CMD_LIST[i].cmd)
 			{
+				isCMD = true;
 				CMD_LIST[i].handler(repa, sendpa);
 				break;
 			}
 		}
-		if (i<sizeof(CMD_LIST)/sizeof(CMD_HANDLER))
+		if (isCMD)
 			conSock.SendResponse(&sendpa);
 		else
 			printf("Unknown Command!\n");

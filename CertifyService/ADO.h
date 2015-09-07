@@ -27,5 +27,6 @@ private:
 	string m_strPwd;
 	string m_strUid;
 	string m_strDBServer;
+	string m_connect_str;
 
 };

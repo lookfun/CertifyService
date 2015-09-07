@@ -1,22 +1,27 @@
 #include "ADO.h"
+#include "Config.h"
 #include <string>
 #include <iostream>
 using namespace std;
 
 ADOcon::ADOcon(void) 
 {
-#ifdef localdb
-	m_strDBServer="(local)\\SQLEXPRESS";
-	m_strDBName="var";
-	m_strUid="sa";
-	m_strPwd="kb134";
-#endif
-#ifdef serverdb
-	m_strDBServer="(local)";
-	m_strDBName="var";
-	m_strUid="sa";
-	m_strPwd="5ef053cb";
-#endif
+	const char config_file[]="database.txt";
+	Config config_settings(config_file);
+
+	if (config_settings.KeyExists("ConnectString"))
+	{
+		m_connect_str=config_settings.Read("ConnectString",m_connect_str);
+	}
+	else
+	{
+		m_strDBServer=config_settings.Read("Server",m_strDBServer);
+		m_strDBName=config_settings.Read("DBname",m_strDBName);
+		m_strUid=config_settings.Read("username",m_strUid);
+		m_strPwd=config_settings.Read("password",m_strPwd);
+		m_connect_str="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";uid="+m_strUid+";pwd="+m_strPwd;
+	}
+
 }
 
 ADOcon::~ADOcon(void)
@@ -29,10 +34,10 @@ void ADOcon::InitADOcon()
 	try
 	{
 		m_pConnection.CreateInstance("ADODB.Connection");
-		string strConnectTmp;
-		strConnectTmp="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";uid="+m_strUid+";pwd="+m_strPwd;
+
+		//strConnectTmp="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";uid="+m_strUid+";pwd="+m_strPwd;
 		//strConnectTmp="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";integrated security=True;";
-		_bstr_t strConnect=_bstr_t(strConnectTmp.c_str());
+		_bstr_t strConnect=_bstr_t(m_connect_str.c_str());
 		m_pConnection->Open(strConnect,"","",adModeUnknown);
 	}
 	catch (_com_error e)

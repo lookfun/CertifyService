@@ -1,0 +1,4 @@
+Server=(local)\\SQLEXPRESS
+DBname=var
+username=sa
+password=kb134

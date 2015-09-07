@@ -67,12 +67,14 @@
     <ClCompile Include="CertifyService.cpp" />
     <ClCompile Include="CertifyType.cpp" />
     <ClCompile Include="communication.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="sqlstore.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ADO.h" />
     <ClInclude Include="CertifyType.h" />
     <ClInclude Include="communication.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="sqlstore.h" />
   </ItemGroup>
   <ItemGroup>

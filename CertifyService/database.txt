@@ -1,0 +1,15 @@
+#ConnectString=Provider=SQLOLEDB;Server=(local)\SQLEXPRESS;Database=var;uid=sa;pwd=kb134
+
+#local
+
+Server=(local)\SQLEXPRESS
+DBname=var
+username=sa
+password=kb134
+
+#server
+
+#Server=(local)
+#DBname=var
+#username=sa
+#password=5ef053cb

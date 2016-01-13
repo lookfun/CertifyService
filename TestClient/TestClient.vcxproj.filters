@@ -15,43 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CertifyService.cpp">
+    <ClCompile Include="client.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CertifyType.cpp">
+    <ClCompile Include="..\CertifyService\CertifyType.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="communication.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="sqlstore.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ADO.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Config.cpp">
+    <ClCompile Include="..\CertifyService\communication.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ADO.h">
+    <ClInclude Include="..\CertifyService\communication.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="sqlstore.h">
+    <ClInclude Include="..\CertifyService\CertifyType.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CertifyType.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="communication.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="dbo.var.sql" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,9 @@
 #pragma once
 #pragma pack (1)
 
+#define SEARCH	(0xcc)
+#define INSERT	(0x33)
+#define SET		(0xaa)
 class UID
 {
 public:

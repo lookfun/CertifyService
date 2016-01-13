@@ -1,14 +1,8 @@
 #include "CertifyType.h"
 
 #include "ADO.h"
-// class IStore
-// {
-// public:
-// 	virtual CODE GetCode(UID *uid);
-// 	virtual int Update(UID,CODE *old_code,CODE *new_code);
-// };
 
-class SqlStore// :public IStore
+class SqlStore
 {
 public:
 	CODE GetCode(UID *uid);
@@ -17,5 +11,5 @@ public:
 	int Set(UID *uid, CODE *code);
 protected:
 	ADOcon ado_Inst;
-	_RecordsetPtr GetRecordInDB(UID *uid);
+	void GetRecordInDB(UID *uid,_RecordsetPtr& pRst);
 };

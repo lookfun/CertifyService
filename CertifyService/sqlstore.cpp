@@ -3,23 +3,23 @@
 #include "sqlstore.h"
 using namespace std;
 
-_RecordsetPtr SqlStore::GetRecordInDB(UID *uid)
+void SqlStore::GetRecordInDB(UID *uid,_RecordsetPtr& pRst )
 {
 	string strsearch;
 	strsearch="select code from dbo.var where uid='";
 	strsearch.append(uid->m_str);
 	strsearch.append("'");
 
-	_RecordsetPtr pRst=ado_Inst.GetRecordSet(strsearch.data());
+	ado_Inst.GetRecordSet(strsearch.data(),pRst);
 
-	return pRst;
 }
 
 CODE SqlStore::GetCode(UID *uid)
 {
 	CODE code;
 
-	_RecordsetPtr pRst=GetRecordInDB(uid);
+	_RecordsetPtr pRst;
+	GetRecordInDB(uid,pRst);
 
 	if (pRst->adoEOF)
 	{
@@ -48,11 +48,11 @@ int SqlStore::Update(UID* uid,CODE *old_code,CODE *new_code)
 	string code;
 	string Old_Code(old_code->m_str);
 	int ret=0;
-	_RecordsetPtr pRst=GetRecordInDB(uid);
+	_RecordsetPtr pRst;
+	GetRecordInDB(uid,pRst);
 
 	if (pRst->adoEOF)
 	{
-		printf("uid=%s is not exist!\n",uid->m_data);
 		ret=0;
 	}
 	else
@@ -92,7 +92,8 @@ int SqlStore::Update(UID* uid,CODE *old_code,CODE *new_code)
 
 int SqlStore::Insert(UID *uid, CODE *code)
 {
-	_RecordsetPtr pRst=GetRecordInDB(uid);
+	_RecordsetPtr pRst;
+	GetRecordInDB(uid,pRst);
 	try
 	{
 		if (!pRst->adoEOF)
@@ -123,7 +124,8 @@ int SqlStore::Set(UID *uid, CODE *code)
 	str_sql="select code from dbo.var where uid='"+string(uid->m_str)+"'";
 	try
 	{
-		_RecordsetPtr pRst=ado_Inst.GetRecordSet(str_sql.data());
+		_RecordsetPtr pRst;
+		ado_Inst.GetRecordSet(str_sql.data(),pRst);
 		if (!pRst->adoEOF)
 		{
 			_variant_t newcode;

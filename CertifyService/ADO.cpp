@@ -2,10 +2,14 @@
 #include "Config.h"
 #include <string>
 #include <iostream>
+#include <mutex>
+//#import "msado60_Backcompat_i386.tlb" no_namespace rename("EOF","adoEOF") rename ("BOF","adoBOF")
+
 using namespace std;
 
 ADOcon::ADOcon(void) 
 {
+	adolock.lock();
 	const char config_file[]="database.txt";
 	Config config_settings(config_file);
 
@@ -21,6 +25,7 @@ ADOcon::ADOcon(void)
 		m_strPwd=config_settings.Read("password",m_strPwd);
 		m_connect_str="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";uid="+m_strUid+";pwd="+m_strPwd;
 	}
+	adolock.unlock();
 
 }
 
@@ -33,15 +38,19 @@ void ADOcon::InitADOcon()
 	::CoInitialize(NULL);
 	try
 	{
+		adolock.lock();
 		m_pConnection.CreateInstance("ADODB.Connection");
 
 		//strConnectTmp="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";uid="+m_strUid+";pwd="+m_strPwd;
 		//strConnectTmp="Provider=SQLOLEDB;Server="+m_strDBServer+";Database="+m_strDBName+";integrated security=True;";
 		_bstr_t strConnect=_bstr_t(m_connect_str.c_str());
 		m_pConnection->Open(strConnect,"","",adModeUnknown);
+		//m_pRecordeset = new _RecordsetPtr();
+		adolock.unlock();
 	}
 	catch (_com_error e)
 	{
+		adolock.unlock();
 		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
 	}
 }
@@ -62,26 +71,24 @@ bool ADOcon::isClosed()
 	return (m_pConnection->State==adStateClosed);
 }
 
-_RecordsetPtr &ADOcon::GetRecordSet(_bstr_t bstrSQL)
+void ADOcon::GetRecordSet(_bstr_t bstrSQL,_RecordsetPtr& m_pRecordeset)
 {
 	try
 	{ 
 		if (m_pConnection==NULL || m_pConnection->State==adStateClosed)
 			InitADOcon();
-		if (m_pRecordeset!=NULL && m_pRecordeset->State!=adStateClosed)
-		{
-			m_pRecordeset->Close();
-			m_pRecordeset=NULL;
-		}
-
-		m_pRecordeset.CreateInstance(__uuidof(Recordset));
-		m_pRecordeset->Open(bstrSQL,m_pConnection.GetInterfacePtr(),adOpenDynamic,adLockOptimistic,adCmdText);
+		
+		adolock.lock();
+		(m_pRecordeset).CreateInstance(__uuidof(Recordset));
+		(m_pRecordeset)->Open(bstrSQL,m_pConnection.GetInterfacePtr(),adOpenDynamic,adLockOptimistic,adCmdText);
+		adolock.unlock();
 	}
 	catch (_com_error e)
 	{
-		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
+		adolock.unlock();
+		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;		
 	}
-	return m_pRecordeset;
+	//return m_pRecordeset;
 }
 
 bool ADOcon::ExcuteSQL(_bstr_t bstrSQL)
@@ -92,11 +99,14 @@ bool ADOcon::ExcuteSQL(_bstr_t bstrSQL)
 		{
 			InitADOcon();
 		}
+		adolock.lock();
 		m_pConnection->Execute(bstrSQL,NULL,adCmdText);
+		adolock.unlock();
 		return true;
 	}
 	catch (_com_error e)
 	{
+		adolock.unlock();
 		cout<<e.ErrorMessage()<<endl<<e.Description()<<endl;
 		return false;
 	}

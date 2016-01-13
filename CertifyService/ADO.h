@@ -1,6 +1,7 @@
 #pragma once
 #import "msado60_Backcompat_i386.tlb" no_namespace rename("EOF","adoEOF") rename ("BOF","adoBOF")
 #include <string>
+#include <mutex>
 using namespace std;
 
 #define localdb
@@ -15,13 +16,13 @@ public:
 	~ADOcon(void);
 	void InitADOcon(string strDBserver,	string strUid,	string strPwd,	string strDBName);
 	void InitADOcon();
-	_RecordsetPtr &GetRecordSet(_bstr_t bstrSQL);
+	void GetRecordSet(_bstr_t bstrSQL,_RecordsetPtr& pRst);
 	bool ExcuteSQL(_bstr_t bstrSQL);
 	bool isClosed();
 private:
 	_ConnectionPtr m_pConnection;
-	_RecordsetPtr m_pRecordeset;
 
+	std::mutex adolock; 
 
 	string m_strDBName;
 	string m_strPwd;

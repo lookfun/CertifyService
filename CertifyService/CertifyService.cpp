@@ -11,7 +11,13 @@
 #include <mutex>
 using namespace std;
 
-DWORD WINAPI ComThread(LPVOID lpParameter);//单个线程
+#define STD_THREAD
+
+#ifdef STD_THREAD
+void ComThread(SOCKET lpParameter);
+#else
+DWORD WINAPI ComThread(LPVOID lpParameter);
+#endif
 
 typedef void (*proc)(Frame repa,Frame &sepa);
 
@@ -21,7 +27,7 @@ void search(Frame repa,Frame &sepa);
 void insert(Frame repa,Frame &sepa);
 void set(Frame repa,Frame &sepa);
 bool CheckCmd(int cmd,proc* handler);
-
+void PrintTime();
 
 typedef struct CMD_HANDLER
 {
@@ -55,43 +61,51 @@ void main()
 
 	SOCKADDR_IN addrClient;
 	int len=sizeof(SOCKADDR);
-	//std::vector<std::thread*> threadList ;
 	while(1)
 	{
 		SOCKET con=accept(sockSrv,(SOCKADDR*)&addrClient,&len);
 		if (con!=SOCKET_ERROR)
 		{
-			//threadList.push_back(new std::thread(ComThread,con));
-		HANDLE hthread1;
-		hthread1=CreateThread(NULL,0,ComThread,(LPVOID)con,0,NULL);
-		CloseHandle(hthread1);
+#ifdef STD_THREAD
+			std::thread tempThread(ComThread,con);
+			tempThread.detach();
+#else
+			HANDLE tempThread;
+			tempThread=CreateThread(NULL,0,ComThread,(LPVOID)con,0,NULL);
+			CloseHandle(tempThread);
+#endif
 		}
 	}
 }
 
+#ifdef STD_THREAD
+void ComThread(SOCKET lpParameter)
+#else
 DWORD WINAPI ComThread(LPVOID lpParameter)
+#endif
 {
 	Frame repa,sendpa;
 	memset(&repa,0,sizeof(Frame));
 	memset(&sendpa,0,sizeof(Frame));
-
-	printf("\n%d:\n",::count++);
-	time_t rawtime; 
-	struct tm * timeinfo; 
-	time ( &rawtime ); 
-	timeinfo = localtime( &rawtime); 
-	printf ( "%s", asctime(timeinfo)); 
+	
 	VarifySocketServer conSock((SOCKET)lpParameter);
 
 	int command = conSock.GetCommand();
 	proc handler;
-	if (!CheckCmd(command,&handler))
+	if (!CheckCmd(command,&handler))		
+	{
+#ifdef STD_THREAD
+		return;
+#else
 		return -1;
+#endif
+	}
 
 	int palen = conSock.RecvFrame(&repa);
 	
 	oplock.lock();
-
+	
+	PrintTime();
 	printf("Tag:%s\n",UID(repa.uid).m_str);
 	printf("command:0x%02x\n",command);
 	handler(repa, sendpa);
@@ -101,7 +115,11 @@ DWORD WINAPI ComThread(LPVOID lpParameter)
 	conSock.SendFrame(&sendpa);
 	
 	closesocket(conSock.con);
-	return 0;
+#ifdef STD_THREAD
+		return;
+#else
+		return 0;
+#endif
 }
 
 int startsocket()
@@ -145,9 +163,9 @@ void search(Frame repa,Frame &sepa)
 	else
 	{
 		if (ret == 0)
-			printf("uid=%s is not exist\n",uid.m_str);
+			printf("uid = %s is not exist\n",uid.m_str);
 		else
-			printf("uid=%s is not right\n",uid.m_str);		
+			printf("uid = %s is not right\n",uid.m_str);		
 		sepa.gen(VARIFY_FAILED, NULL);
 		printf("Tag code: %s\nRet code: %s\n",tag_code.m_str,CODE(sepa.code).m_str);
 	}
@@ -186,7 +204,17 @@ bool CheckCmd(int cmd,proc* handler)
 			return true;
 		}
 	}
-	
+	PrintTime();
 	printf("Unknown Command!\n");
 	return false;
+}
+
+void PrintTime()
+{	
+	printf("\n%d:\n",::count++);
+	time_t rawtime; 
+	struct tm * timeinfo; 
+	time ( &rawtime ); 
+	timeinfo = localtime( &rawtime); 
+	printf ( "%s", asctime(timeinfo)); 
 }

@@ -21,7 +21,7 @@ public:
 	CODE();
 };
 
-enum state
+enum STATE
 {
 	VARIFY_SECCESS,
 	VARIFY_FAILED,
@@ -34,8 +34,8 @@ public:
 	char uid[8];
 	char code[32];
 	Frame(){};
-	Frame(state st, char* cd);
+	Frame(STATE state, char* cd);
 
-	int gen(state st, char* cd);
+	int gen(STATE state, char* cd);
 	int gen(char* uid, char* cd);
 };

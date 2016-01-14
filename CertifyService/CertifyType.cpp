@@ -45,41 +45,21 @@ CODE::CODE()
 	charto16x(m_data,m_str);
 }
 
-Frame::Frame(state st, char* cd)
+Frame::Frame(STATE state, char* cd)
 {
-	if (st == VARIFY_SECCESS)
-	{
-		memset(uid,0xff,4);
-		memset(&uid[4],0x00,4);
-		memcpy_s(code,32,cd,32);
-
-	}
-	else if (st == SET_SECCESS)
-	{
-		memset(uid,0xff,2);
-		memset(&uid[2],0x00,2);
-		memset(&uid[4],0xff,2);
-		memset(&uid[6],0x00,2);
-		if (cd != NULL)
-			memcpy_s(code,32,cd,32);
-	}
-	else 
-	{
-		memset(uid,0x00,4);
-		memset(&uid[4],0xff,4);
-	}
+	gen(state, cd);
 }
 
-int Frame::gen(state st, char* cd)
+int Frame::gen(STATE state, char* cd)
 {
-	if (st == VARIFY_SECCESS)
+	if (state == VARIFY_SECCESS)
 	{
 		memset(uid,0xff,4);
 		memset(&uid[4],0x00,4);
 		memcpy_s(code,32,cd,32);
 
 	}
-	else if (st == SET_SECCESS)
+	else if (state == SET_SECCESS)
 	{
 		memset(uid,0xff,2);
 		memset(&uid[2],0x00,2);

@@ -30,9 +30,9 @@ int main(int argc,char **argv)
 	Frame sepa ;
 	Frame repa;
 	sepa.gen(id,NULL);
-	
-		sepa.gen(NULL,repa.code);	
-		TestSock(clientsock_in,SEARCH,&sepa,&repa);
+
+	sepa.gen(NULL,repa.code);	
+	TestSock(clientsock_in,SEARCH,&sepa,&repa);
 
 	TestOnce(clientsock_in,INSERT,&sepa,&repa);
 	while(true)

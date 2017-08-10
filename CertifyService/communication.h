@@ -14,6 +14,8 @@ protected:
 	void DealWithErr();
 };
 
+
+
 class VarifySocketServer:public VarifySocket
 {	
 public:	

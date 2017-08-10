@@ -214,7 +214,9 @@ void PrintTime()
 	printf("\n%d:\n",::count++);
 	time_t rawtime; 
 	struct tm * timeinfo; 
+	char time_str[32];
 	time ( &rawtime ); 
-	timeinfo = localtime( &rawtime); 
-	printf ( "%s", asctime(timeinfo)); 
+	localtime_s( timeinfo,&rawtime);
+	asctime_s(time_str,timeinfo); 
+	printf ( "%s", time_str); 
 }

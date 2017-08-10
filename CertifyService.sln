@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CertifyService", "CertifySe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestClient", "TestClient\TestClient.vcxproj", "{2925476D-B8FE-4AD3-856E-850DCD856646}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DT", "DT\DT.vcxproj", "{E94ACE6F-2C54-4FCF-8FDC-FB024197F1F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{2925476D-B8FE-4AD3-856E-850DCD856646}.Debug|Win32.Build.0 = Debug|Win32
 		{2925476D-B8FE-4AD3-856E-850DCD856646}.Release|Win32.ActiveCfg = Release|Win32
 		{2925476D-B8FE-4AD3-856E-850DCD856646}.Release|Win32.Build.0 = Release|Win32
+		{E94ACE6F-2C54-4FCF-8FDC-FB024197F1F6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E94ACE6F-2C54-4FCF-8FDC-FB024197F1F6}.Debug|Win32.Build.0 = Debug|Win32
+		{E94ACE6F-2C54-4FCF-8FDC-FB024197F1F6}.Release|Win32.ActiveCfg = Release|Win32
+		{E94ACE6F-2C54-4FCF-8FDC-FB024197F1F6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
